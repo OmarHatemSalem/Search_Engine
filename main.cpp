@@ -1,4 +1,3 @@
-#include "Page.h"
 #include "Trie.h"
 #include "Graph.h"
 
@@ -8,7 +7,7 @@ const int WEBS = 4;
 const int LINKS = 4;
 
 
-void read_keywords_impressions(Trie& tree, Graph& web);
+void read_keywords(Trie& tree, Graph& web);
 void read_links(Graph& web);
 void queryParser(string q, Trie& tree, Graph& web);
 
@@ -16,30 +15,29 @@ void heapify(struct TrieNode* p, int i);
 void build_heap(struct TrieNode* p);
 void heap_sort(struct TrieNode* p);
 
+bool sortbysec(const pair<string, double>& a, const pair<string, double>& b);
+
 int main() {
 
 
 	Trie keys;
 	Graph web(WEBS);
-	
-	read_keywords_impressions(keys, web);
+
+	read_keywords(keys, web);
 	read_links(web);
-
-	/*cout << keys.search_display("programming") << endl;
-	web.printMatrix();*/
-
-	/*
-	web.printPageRanks();
-	cout << endl;
 	web.readPageRank("pageranks.csv");
-	web.printPageRanks();
-	cout << endl;*/
+	web.readImpressions("impressions.csv");
+
 
 	for (size_t i = 0; i < 1; i++)
 	{
 		web.calcPageRank();
 	}
-	string enter;
+	web.writePageRank("pageranks.csv");
+
+	queryParser("data OR programming", keys, web);
+	cout << endl;
+	/*string enter;
 	do {
 		cout << "Welcome!" << endl;
 		cout << "1. New Search" << endl;
@@ -63,15 +61,15 @@ int main() {
 				cout << "1. Open a Webage" << endl;
 				cout << "2. New Search" << endl;
 				cout << "3. Exit" << endl;
-				cin >> search_choice;*/
+				cin >> search_choice;
 
 				char webpage_choice;
-			
+
 			} while (search_choice != '3');
 			//system("cls");
 		}
 
-	} while (enter != "2");
+	} while (enter != "2");*/
 }
 
 
@@ -101,21 +99,20 @@ void read_links(Graph& web) {
 
 		web.addEdge(row.at(0), row.at(1));
 
-		
+
 
 	}
 
 	web.calcOutgo();
 }
 
-void read_keywords_impressions(Trie& tree, Graph& web)
+void read_keywords(Trie& tree, Graph& web)
 {
 
-	vector<Page> ps;
 
 	fstream fin;
 
-	fin.open("impressions.csv", ios::in);
+	fin.open("keywords.csv", ios::in);
 
 	vector<string> row;
 	string line, word, temp;
@@ -133,44 +130,17 @@ void read_keywords_impressions(Trie& tree, Graph& web)
 			row.push_back(word);
 		}
 
-		Page website(row.at(0));
-		website.setImpress(stof(row.at(1)));
-		ps.push_back(website);
-
-	}
-
-
-
-	fin.close();
-
-	fin.open("keywords.csv", ios::in);
-
-	int webCount = 0;
-	while (fin >> temp) {
-
-		row.clear();
-
-		getline(fin, line);
-
-		stringstream s(temp);
-
-		while (getline(s, word, ',')) {
-
-			row.push_back(word);
-		}
-
 
 		web.addVertex(row.at(0));
 		for (unsigned i = 1; i < row.size(); i++) {
-			tree.insert_with_Web(row.at(i), ps.at(webCount));
+			tree.insert_with_Web(row.at(i), row.at(0));
 		}
 
-		webCount++;
 	}
 }
 
 void queryParser(string q, Trie& tree, Graph& web) {
-	
+
 	vector<string> row;
 	string word;
 	stringstream s(q);
@@ -187,19 +157,19 @@ void queryParser(string q, Trie& tree, Graph& web) {
 			cout << "No websites contain the query \"" << q << "\"" << endl;
 		}
 		else {
-
+			vector<pair<string, double>> webScores;
 			for (unsigned i = 0; i < result->websites.size(); i++) {
-				string name = result->websites.at(i).getVertex().name;
-				result->websites[i].getPageRank(web.getVertexPR(name));
-				result->websites[i].incrementImps();
-				result->websites[i].recalcScore();
-
+				web.calcScore(result->websites.at(i));
+				pair<string, double> candidate = { result->websites.at(i), web.getScore(result->websites.at(i)) };
+				webScores.push_back(candidate);
 			}
-			sort(result->websites.rbegin(), result->websites.rend());
+			sort(webScores.rbegin(), webScores.rend(), sortbysec);
 
 			cout << "Search Results for: " << q << endl;
 			for (unsigned i = 0; i < result->websites.size(); i++) {
-				result->websites.at(i).printPage();
+				web.incrementImps(result->websites.at(i));
+				web.calcScore(result->websites.at(i));
+				cout << webScores.at(i).first << " " << webScores.at(i).second << endl;
 			}
 		}
 	}
@@ -207,72 +177,68 @@ void queryParser(string q, Trie& tree, Graph& web) {
 		auto result1 = tree.search_return(row.at(0));
 		auto result2 = tree.search_return(row.at(2));
 
-		if (result1 == nullptr) {
-			cout << "No websites contain the query \"" << row.at(0) << "\"" << endl;
-		} else if (result2 == nullptr) {
+		if ((result1 == nullptr || result2 == nullptr) && row.at(1) == "AND") {
+			cout << "No websites contain the query \"" << q << "\"" << endl;
+		}
+		else if ((result1 == nullptr || result2 == nullptr) && row.at(1) == "OR") {
 			cout << "No websites contain the query \"" << row.at(2) << "\"" << endl;
 		}
 		else {
 
+			vector<pair<string, double>> webScores1;
 			for (unsigned i = 0; i < result1->websites.size(); i++) {
-				string name = result1->websites.at(i).getVertex().name;
-				result1->websites[i].getPageRank(web.getVertexPR(name));
-				result1->websites[i].incrementImps();
-				result1->websites[i].recalcScore();
-
+				web.calcScore(result1->websites.at(i));
+				pair<string, double> candidate = { result1->websites.at(i), web.getScore(result1->websites.at(i)) };
+				webScores1.push_back(candidate);
 			}
 
+			vector<pair<string, double>> webScores2;
 			for (unsigned i = 0; i < result2->websites.size(); i++) {
-				string name = result2->websites.at(i).getVertex().name;
-				result2->websites[i].getPageRank(web.getVertexPR(name));
-				result2->websites[i].incrementImps();
-				result2->websites[i].recalcScore();
-
+				web.calcScore(result2->websites.at(i));
+				pair<string, double> candidate = { result2->websites.at(i), web.getScore(result2->websites.at(i)) };
+				webScores2.push_back(candidate);
 			}
-			sort(result1->websites.begin(), result1->websites.end());
-			sort(result2->websites.begin(), result2->websites.end());
+			
+			sort(webScores1.begin(), webScores1.end(), sortbysec);
+			sort(webScores2.begin(), webScores2.end(), sortbysec);
+
 
 			if (row.at(1) == "AND") {
-				vector<Page> v3;
+				vector<pair<string, double>> v3;
 
-				/*set_intersection(result1->websites.begin(), result1->websites.end(),
-					result2->websites.begin(), result2->websites.end(),
+				set_intersection(webScores1.begin(), webScores1.end(),
+					webScores2.begin(), webScores2.end(),
 					back_inserter(v3));
 
 				cout << "Search Results for: " << q << endl;
-				for (unsigned i = 0; i < v3.size(); i++) {
-					v3.at(i).printPage();
-				}*/
+				for (int i = v3.size() - 1; i >= 0; i--) {
+					web.incrementImps(v3.at(i).first);
+					web.calcScore(v3.at(i).first);
+					cout << v3.at(i).first << " " << v3.at(i).second << endl;
+				}
 
-				for (unsigned i = 0; i < result1->websites.size(); i++) {
-					result1->websites.at(i).printPage();
+				/*for (unsigned i = 0; i < result1->websites.size(); i++) {
+					cout << webScores1.at(i).first << " " << webScores1.at(i).second << endl;
 				}
 
 				for (unsigned i = 0; i < result2->websites.size(); i++) {
-					result2->websites.at(i).printPage();
-				}
+					cout << webScores2.at(i).first << " " << webScores2.at(i).second << endl;
+				}*/
 
-			} else if (row.at(1) == "OR") {
-				vector<Page> v3;
+			}
+			else if (row.at(1) == "OR") {
+				vector<pair<string, double>> v3;
 
-				/*set_union(result1->websites.begin(), result1->websites.end(),
-					result2->websites.begin(), result2->websites.end(),
+				set_union(webScores1.begin(), webScores1.end(),
+					webScores2.begin(), webScores2.end(),
 					back_inserter(v3));
 
 				cout << "Search Results for: " << q << endl;
-				cout << v3.size() << endl;
-				for (unsigned i = 0; i < v3.size(); i++) {
-					v3.at(i).printPage();
-				}*/
-
-				for (unsigned i = 0; i < result1->websites.size(); i++) {
-					result1->websites.at(i).printPage();
+				for (int i = v3.size()-1; i >= 0; i--) {
+					web.incrementImps(v3.at(i).first);
+					web.calcScore(v3.at(i).first);
+					cout << v3.at(i).first << " " << v3.at(i).second << endl;
 				}
-
-				for (unsigned i = 0; i < result2->websites.size(); i++) {
-					result2->websites.at(i).printPage();
-				}
-
 			}
 		}
 	}
@@ -313,4 +279,9 @@ void heap_sort(struct TrieNode* p)
 		swap(p->websites[0], p->websites[i]);
 		heapify(p, i);
 	}
+}
+
+bool sortbysec(const pair<string, double>& a, const pair<string, double>& b)
+{
+	return (a.second < b.second);
 }

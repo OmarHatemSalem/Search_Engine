@@ -33,7 +33,7 @@ void Trie::insertNode(struct TrieNode* root, string key)
 	pCrawl->isEndOfWord = true;
 }
 
-void Trie::insert_with_WebNode(struct TrieNode* root, string key, Page P)
+void Trie::insert_with_WebNode(struct TrieNode* root, string key, string P)
 {
 	struct TrieNode* pCrawl = root;
 
@@ -55,7 +55,7 @@ void Trie::insert(string key) {
 	insertNode(base, key);
 }
 
-void Trie::insert_with_Web(string key, Page P) {
+void Trie::insert_with_Web(string key, string P) {
 	insert_with_WebNode(base, key, P);
 }
 
@@ -96,8 +96,9 @@ bool Trie::search_display_Node(struct TrieNode* root, string key) {
 	if (pCrawl->isEndOfWord) {
 		cout << "Keyword: " << key << endl;
 		for (unsigned i = 0; i < pCrawl->websites.size(); i++) {
-			pCrawl->websites.at(i).printPage();
+			cout << pCrawl->websites.at(i) << endl;
 		}
+		cout << endl;
 		return true;
 	}
 	else {

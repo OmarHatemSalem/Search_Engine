@@ -1,7 +1,17 @@
 #ifndef TRIE_H
 #define TRIE_H
 
-#include "Page.h"
+#include <iostream>
+#include <string>
+#include <fstream>
+#include <sstream>
+#include <vector>
+#include <unordered_map>
+#include <utility>
+#include <algorithm>
+
+
+using namespace std;
 
 
 const int ALPHABET_SIZE = 26;
@@ -10,7 +20,7 @@ struct TrieNode
 {
 	struct TrieNode* children[ALPHABET_SIZE];
 
-	vector<Page> websites;
+	vector<string> websites;
 	bool isEndOfWord;
 };
 
@@ -24,10 +34,10 @@ public:
 	struct TrieNode* getNode();
 
 	void insertNode(struct TrieNode* root, string key);
-	void insert_with_WebNode(struct TrieNode* root, string key, Page P);
+	void insert_with_WebNode(struct TrieNode* root, string key, string P);
 
 	void insert(string key);
-	void insert_with_Web(string key, Page P);
+	void insert_with_Web(string key, string P);
 
 	bool search(string key);
 	bool search_display(string key);
