@@ -181,7 +181,7 @@ void Graph::writePageRank(string s)
 {
 	fstream fout;
 
-	fout.open(s, ios::out | ios::app);
+	fout.open(s, ios::out);
 
 	
 	for (int i = 0; i < vertices; i++) {
@@ -224,7 +224,7 @@ void Graph::readPageRank(string s) {
 void Graph::writeImpressions(string s) {
 	fstream fout;
 
-	fout.open(s, ios::out | ios::app);
+	fout.open(s, ios::out);
 
 
 	for (int i = 0; i < vertices; i++) {
@@ -267,7 +267,7 @@ void Graph::readImpressions(string s) {
 void Graph::writeClicks(string s) {
 	fstream fout;
 
-	fout.open(s, ios::out | ios::app);
+	fout.open(s, ios::out);
 
 
 	for (int i = 0; i < vertices; i++) {
@@ -309,7 +309,7 @@ void Graph::readClicks(string s) {
 void Graph::writeCTRs(string s) {
 	fstream fout;
 
-	fout.open(s, ios::out | ios::app);
+	fout.open(s, ios::out);
 
 
 	for (int i = 0; i < vertices; i++) {
