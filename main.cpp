@@ -33,7 +33,7 @@ int main() {
 	}
 	web.writePageRank("pageranks.csv");
 
-	queryParser("data AND structures", keys, web);
+	queryParser("data OR complexity", keys, web);
 	cout << endl;
 	/*string enter;
 	do {
@@ -232,8 +232,10 @@ void queryParser(string q, Trie& tree, Graph& web) {
 					webScores2.begin(), webScores2.end(),
 					back_inserter(v3));
 
+
+				sort(v3.rbegin(), v3.rend(), sortbysec);
 				cout << "Search Results for: " << q << endl;
-				for (int i = v3.size() - 1; i >= 0; i--) {
+				for (int i = 0; i < v3.size(); i++) {
 					web.incrementImps(v3.at(i).first);
 					web.calcScore(v3.at(i).first);
 					cout << v3.at(i).first << " " << v3.at(i).second << endl;
