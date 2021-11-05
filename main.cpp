@@ -11,9 +11,7 @@ void read_keywords(Trie& tree, Graph& web);
 void read_links(Graph& web);
 void queryParser(string q, Trie& tree, Graph& web);
 
-void heapify(struct TrieNode* p, int i);
-void build_heap(struct TrieNode* p);
-void heap_sort(struct TrieNode* p);
+
 
 bool sortbysec(const pair<string, double>& a, const pair<string, double>& b);
 
@@ -35,7 +33,7 @@ int main() {
 	}
 	web.writePageRank("pageranks.csv");
 
-	queryParser("data OR programming", keys, web);
+	queryParser("data AND structures", keys, web);
 	cout << endl;
 	/*string enter;
 	do {
@@ -185,25 +183,26 @@ void queryParser(string q, Trie& tree, Graph& web) {
 		}
 		else {
 
-			vector<pair<string, double>> webScores1;
+			set<pair<string, double>> webScores1;
 			for (unsigned i = 0; i < result1->websites.size(); i++) {
 				web.calcScore(result1->websites.at(i));
 				pair<string, double> candidate = { result1->websites.at(i), web.getScore(result1->websites.at(i)) };
-				webScores1.push_back(candidate);
+				webScores1.insert(candidate);
 			}
 
-			vector<pair<string, double>> webScores2;
+			set<pair<string, double>> webScores2;
 			for (unsigned i = 0; i < result2->websites.size(); i++) {
 				web.calcScore(result2->websites.at(i));
 				pair<string, double> candidate = { result2->websites.at(i), web.getScore(result2->websites.at(i)) };
-				webScores2.push_back(candidate);
+				webScores2.insert(candidate);
 			}
-			
-			sort(webScores1.begin(), webScores1.end(), sortbysec);
-			sort(webScores2.begin(), webScores2.end(), sortbysec);
+
+
 
 
 			if (row.at(1) == "AND") {
+
+
 				vector<pair<string, double>> v3;
 
 				set_intersection(webScores1.begin(), webScores1.end(),
@@ -234,7 +233,7 @@ void queryParser(string q, Trie& tree, Graph& web) {
 					back_inserter(v3));
 
 				cout << "Search Results for: " << q << endl;
-				for (int i = v3.size()-1; i >= 0; i--) {
+				for (int i = v3.size() - 1; i >= 0; i--) {
 					web.incrementImps(v3.at(i).first);
 					web.calcScore(v3.at(i).first);
 					cout << v3.at(i).first << " " << v3.at(i).second << endl;
@@ -244,42 +243,7 @@ void queryParser(string q, Trie& tree, Graph& web) {
 	}
 }
 
-void heapify(struct TrieNode* p, int i)
-{
-	int largest = i;
-	int l = 2 * i + 1;
-	int r = 2 * i + 2;
 
-	if (l < p->websites.size() && p->websites[l] > p->websites[largest])
-		largest = l;
-
-	if (r < p->websites.size() && p->websites[r] > p->websites[largest])
-		largest = r;
-
-	if (largest != i) {
-		//swap(p->websites[i], p->websites[largest]);
-		iter_swap(p->websites.begin() + i, p->websites.begin() + largest);
-
-		heapify(p, largest);
-	}
-}
-
-void build_heap(struct TrieNode* p)
-{
-	for (int i = p->websites.size() / 2 - 1; i >= 0; i--)
-		heapify(p, i);
-}
-
-
-void heap_sort(struct TrieNode* p)
-{
-	build_heap(p);
-
-	for (int i = p->websites.size() - 1; i >= 0; i--) {
-		swap(p->websites[0], p->websites[i]);
-		heapify(p, i);
-	}
-}
 
 bool sortbysec(const pair<string, double>& a, const pair<string, double>& b)
 {
