@@ -36,6 +36,34 @@ Graph::Graph(int v) {
 	}
 }
 
+
+Graph::Graph(int v, string s1, string s2) {
+	vertices = v;
+	namedVertices = 0;
+	pageRanks = new double[vertices];
+	impressions = new double[vertices];
+	clicks = new double[vertices];
+	CTRs = new double[vertices];
+	scores = new double[vertices];
+	outgoins = new int[vertices];
+	adjMatrix = new int* [vertices];
+	for (int i = 0; i < vertices; i++) {
+		pageRanks[i] = 1 / static_cast<double>(vertices);
+		impressions[i] = 0;
+		clicks[i] = 0;
+		CTRs[i] = 0;
+		scores[i] = 0;
+		outgoins[i] = 0;
+		adjMatrix[i] = new int[vertices];
+		for (int j = 0; j < vertices; j++) {
+			adjMatrix[i][j] = 0;
+		}
+	}
+
+	readPageRank(s1);
+	readImpressions(s2);
+}
+
 void Graph::addVertex(string s) {
 	names[s] = namedVertices;
 	reverse_names[namedVertices] = s;
@@ -87,6 +115,10 @@ void Graph::incrementImps(string s) {
 void Graph::setClicks(double cls, string s) {
 	if (cls > 0)
 		impressions[names[s]] = cls;
+}
+
+void Graph::incrementClicks(string s) {
+	clicks[names[s]]++;
 }
 
 void Graph::calcOutgo() {
@@ -347,3 +379,4 @@ void Graph::readCTRs(string s) {
 	}
 
 }
+

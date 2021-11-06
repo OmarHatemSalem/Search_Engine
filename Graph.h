@@ -31,6 +31,7 @@ class Graph
 public:
 	Graph();
 	Graph(int v);
+	Graph(int v, string s1, string s2);
 
 	void addVertex(string s);
 	void addEdge(string p1, string p2);
@@ -42,6 +43,7 @@ public:
 	void setImpressions(double imps, string s);
 	void incrementImps(string s);
 	void setClicks(double cls, string s);
+	void incrementClicks(string s);
 
 	void calcOutgo();
 	void calcPageRank();
@@ -67,6 +69,7 @@ public:
 
 	void writeCTRs(string s);
 	void readCTRs(string s);
+
 };
 
 #endif

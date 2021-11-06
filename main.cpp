@@ -9,7 +9,8 @@ const int LINKS = 4;
 
 void read_keywords(Trie& tree, Graph& web);
 void read_links(Graph& web);
-void queryParser(string q, Trie& tree, Graph& web);
+inline bool exists_test0(const std::string& name);
+vector<pair<string, double>> queryParser(string q, Trie& tree, Graph& web);
 
 
 
@@ -23,19 +24,21 @@ int main() {
 
 	read_keywords(keys, web);
 	read_links(web);
-	web.readPageRank("pageranks.csv");
+	if (exists_test0("pageranks.csv")) {
+		web.readPageRank("pageranks.csv");
+	}
+	else {
+		for (size_t i = 0; i < 100; i++)
+		{
+			web.calcPageRank();
+		}
+		web.writePageRank("pageranks.csv");
+	}
 	web.readImpressions("impressions.csv");
 
 
-	for (size_t i = 0; i < 1; i++)
-	{
-		web.calcPageRank();
-	}
-	web.writePageRank("pageranks.csv");
 
-	queryParser("data OR complexity", keys, web);
-	cout << endl;
-	/*string enter;
+	string enter;
 	do {
 		cout << "Welcome!" << endl;
 		cout << "1. New Search" << endl;
@@ -45,29 +48,39 @@ int main() {
 		cin >> enter;
 
 		if (enter == "1") {
-			char search_choice='1';
+			char search_choice;
 			do {
 				//system("cls");
 				string query;
 				cout << "search for: ";
 				getline(cin, query);
-				cout << query;
-				system("pause");
-				queryParser(query, keys, web);
+				vector<pair<string, double>> results = queryParser(query, keys, web);
 
-				/*cout << "\nWould you like to: " << endl;
+				cout << "\nWould you like to: " << endl;
 				cout << "1. Open a Webage" << endl;
 				cout << "2. New Search" << endl;
 				cout << "3. Exit" << endl;
 				cin >> search_choice;
 
-				char webpage_choice;
+				int webpage_choice;
+				if (search_choice == '1') {
+					cout << "choose website number: ";
+					cin >> webpage_choice;
+					web.incrementClicks(results.at(webpage_choice - 1).first);
+					system("cls");
+					cout << "You are now viewing " << results.at(webpage_choice - 1).first << "." << endl;
+
+					cout << "\nWould you like to: " << endl;
+					cout << "1. Back to Search Results" << endl;
+					cout << "2. New Search" << endl;
+					cout << "3. Exit" << endl;
+				}
 
 			} while (search_choice != '3');
 			//system("cls");
 		}
 
-	} while (enter != "2");*/
+	} while (enter != "2");
 }
 
 
@@ -137,7 +150,7 @@ void read_keywords(Trie& tree, Graph& web)
 	}
 }
 
-void queryParser(string q, Trie& tree, Graph& web) {
+vector<pair<string, double>> queryParser(string q, Trie& tree, Graph& web) {
 
 	vector<string> row;
 	string word;
@@ -167,8 +180,10 @@ void queryParser(string q, Trie& tree, Graph& web) {
 			for (unsigned i = 0; i < result->websites.size(); i++) {
 				web.incrementImps(result->websites.at(i));
 				web.calcScore(result->websites.at(i));
-				cout << webScores.at(i).first << " " << webScores.at(i).second << endl;
+				cout << i+1 << " " << webScores.at(i).first << " " << webScores.at(i).second << endl;
 			}
+			return webScores;
+
 		}
 	}
 	else if (row.size() == 3) {
@@ -209,11 +224,12 @@ void queryParser(string q, Trie& tree, Graph& web) {
 					webScores2.begin(), webScores2.end(),
 					back_inserter(v3));
 
+				sort(v3.rbegin(), v3.rend(), sortbysec);
 				cout << "Search Results for: " << q << endl;
-				for (int i = v3.size() - 1; i >= 0; i--) {
+				for (int i = 0; i < v3.size(); i++) {
 					web.incrementImps(v3.at(i).first);
 					web.calcScore(v3.at(i).first);
-					cout << v3.at(i).first << " " << v3.at(i).second << endl;
+					cout << i+1 << " " << v3.at(i).first << " " << v3.at(i).second << endl;
 				}
 
 				/*for (unsigned i = 0; i < result1->websites.size(); i++) {
@@ -223,7 +239,7 @@ void queryParser(string q, Trie& tree, Graph& web) {
 				for (unsigned i = 0; i < result2->websites.size(); i++) {
 					cout << webScores2.at(i).first << " " << webScores2.at(i).second << endl;
 				}*/
-
+				return v3;
 			}
 			else if (row.at(1) == "OR") {
 				vector<pair<string, double>> v3;
@@ -240,6 +256,7 @@ void queryParser(string q, Trie& tree, Graph& web) {
 					web.calcScore(v3.at(i).first);
 					cout << v3.at(i).first << " " << v3.at(i).second << endl;
 				}
+				return v3;
 			}
 		}
 	}
@@ -250,4 +267,9 @@ void queryParser(string q, Trie& tree, Graph& web) {
 bool sortbysec(const pair<string, double>& a, const pair<string, double>& b)
 {
 	return (a.second < b.second);
+}
+
+inline bool exists_test0(const std::string& name) {
+	ifstream f(name.c_str());
+	return f.good();
 }
