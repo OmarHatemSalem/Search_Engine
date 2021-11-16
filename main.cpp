@@ -3,8 +3,8 @@
 
 using namespace std;
 
-const int WEBS = 4;
-const int LINKS = 4;
+const int WEBS = 30;
+const int LINKS = 70;
 
 
 void read_keywords(Trie& tree, Graph& web);
