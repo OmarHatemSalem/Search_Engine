@@ -72,10 +72,15 @@ int main() {
 						queryPrinter(query, results);
 						cout << "\nchoose website number: ";
 						cin >> webpage_choice;
-						web.incrementClicks(results.at(webpage_choice - 1).first);
 						system("cls");
-						cout << "You are now viewing " << results.at(webpage_choice - 1).first << "." << endl;
+						if (webpage_choice > results.size()) {
+							cout << "The number you entered doesn't exist" << endl;
+						}
+						else {
+							web.incrementClicks(results.at(webpage_choice - 1).first);
+							cout << "You are now viewing " << results.at(webpage_choice - 1).first << "." << endl;
 
+						}
 						cout << "\nWould you like to: " << endl;
 						cout << "1. Back to Search Results" << endl;
 						cout << "2. New Search" << endl;
@@ -208,9 +213,44 @@ vector<pair<string, double>> queryParser(string q, Trie& tree, Graph& web) {
 			return v3;
 		}
 		else if ((result1 == nullptr || result2 == nullptr) && row.at(1) == "OR") {
-			//cout << "No websites contain the query \"" << row.at(2) << "\"" << endl;
-			vector<pair<string, double>> v3;
-			return v3;
+			if (result1 == nullptr && result2 == nullptr) {
+				//cout << "No websites contain the query \"" << q << "\"" << endl;
+				vector<pair<string, double>> v3;
+				return v3;
+			} else if (result1 == nullptr) {
+				vector<pair<string, double>> webScores;
+				for (unsigned i = 0; i < result2->websites.size(); i++) {
+					web.calcScore(result2->websites.at(i));
+					pair<string, double> candidate = { result2->websites.at(i), web.getScore(result2->websites.at(i)) };
+					webScores.push_back(candidate);
+				}
+				sort(webScores.rbegin(), webScores.rend(), sortbysec);
+
+				cout << "Search Results for: " << q << endl;
+				for (unsigned i = 0; i < result2->websites.size(); i++) {
+					web.incrementImps(result2->websites.at(i));
+					web.calcScore(result2->websites.at(i));
+					//cout << i+1 << ". " << webScores.at(i).first << " " << webScores.at(i).second << endl;
+				}
+				return webScores;
+			}
+			else if (result2 == nullptr){
+				vector<pair<string, double>> webScores;
+				for (unsigned i = 0; i < result1->websites.size(); i++) {
+					web.calcScore(result1->websites.at(i));
+					pair<string, double> candidate = { result1->websites.at(i), web.getScore(result1->websites.at(i)) };
+					webScores.push_back(candidate);
+				}
+				sort(webScores.rbegin(), webScores.rend(), sortbysec);
+
+				cout << "Search Results for: " << q << endl;
+				for (unsigned i = 0; i < result1->websites.size(); i++) {
+					web.incrementImps(result1->websites.at(i));
+					web.calcScore(result1->websites.at(i));
+					//cout << i+1 << ". " << webScores.at(i).first << " " << webScores.at(i).second << endl;
+				}
+				return webScores;
+			}
 		}
 		else {
 
