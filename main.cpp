@@ -28,6 +28,11 @@ int main() {
 	if (exists_test0("pageranks.csv")) {
 		web.readPageRank("pageranks.csv");
 	}
+
+	if (exists_test0("clicks.csv")) {
+		web.readPageRank("clicks.csv");
+	}
+
 	else {
 		for (size_t i = 0; i < 100; i++)
 		{
