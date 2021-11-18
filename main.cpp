@@ -37,8 +37,7 @@ int main() {
 	}
 	web.readImpressions("impressions.csv");
 
-
-
+	
 	string enter;
 	do {
 		cout << "Welcome!" << endl;
@@ -54,7 +53,7 @@ int main() {
 				system("cls");
 				string query;
 				cout << "search for: ";
-				getline(cin, query, '\n');
+				getline(cin>>ws, query, '\n');
 				
 				vector<pair<string, double>> results = queryParser(query, keys, web);
 				system("cls");
