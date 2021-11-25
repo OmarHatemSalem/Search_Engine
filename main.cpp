@@ -10,9 +10,10 @@ const int LINKS = 70;
 void read_keywords(Trie& tree, Graph& web);
 void read_links(Graph& web);
 inline bool exists_test0(const string& name);
+string quoteRemover(string s);
 vector<pair<string, double>> queryParser(string q, Trie& tree, Graph& web);
 
- void queryPrinter(string s, vector<pair<string, double>> data);
+void queryPrinter(string s, vector<pair<string, double>> data);
 
 
 bool sortbysec(const pair<string, double>& a, const pair<string, double>& b);
@@ -183,7 +184,7 @@ vector<pair<string, double>> queryParser(string q, Trie& tree, Graph& web) {
 	}
 
 	if (row.size() == 1) {
-		auto result = tree.search_return(q);
+		auto result = tree.search_return(quoteRemover(q));
 
 		if (result == nullptr) {
 			//cout << "No websites contain the query \"" << q << "\"" << endl;
@@ -207,9 +208,86 @@ vector<pair<string, double>> queryParser(string q, Trie& tree, Graph& web) {
 
 		}
 	}
+	else if (row.size() == 2) {
+		auto result1 = tree.search_return(quoteRemover(row.at(0)));
+		auto result2 = tree.search_return(quoteRemover(row.at(1)));
+
+		if (result1 == nullptr && result2 == nullptr) {
+			//cout << "No websites contain the query \"" << q << "\"" << endl;
+			vector<pair<string, double>> v3;
+			return v3;
+		}
+		else if (result1 == nullptr) {
+			vector<pair<string, double>> webScores;
+			for (unsigned i = 0; i < result2->websites.size(); i++) {
+				web.calcScore(result2->websites.at(i));
+				pair<string, double> candidate = { result2->websites.at(i), web.getScore(result2->websites.at(i)) };
+				webScores.push_back(candidate);
+			}
+			sort(webScores.rbegin(), webScores.rend(), sortbysec);
+
+			cout << "Search Results for: " << q << endl;
+			for (unsigned i = 0; i < result2->websites.size(); i++) {
+				web.incrementImps(result2->websites.at(i));
+				web.calcScore(result2->websites.at(i));
+				//cout << i+1 << ". " << webScores.at(i).first << " " << webScores.at(i).second << endl;
+			}
+			return webScores;
+		}
+		else if (result2 == nullptr) {
+			vector<pair<string, double>> webScores;
+			for (unsigned i = 0; i < result1->websites.size(); i++) {
+				web.calcScore(result1->websites.at(i));
+				pair<string, double> candidate = { result1->websites.at(i), web.getScore(result1->websites.at(i)) };
+				webScores.push_back(candidate);
+			}
+			sort(webScores.rbegin(), webScores.rend(), sortbysec);
+
+			cout << "Search Results for: " << q << endl;
+			for (unsigned i = 0; i < result1->websites.size(); i++) {
+				web.incrementImps(result1->websites.at(i));
+				web.calcScore(result1->websites.at(i));
+				//cout << i+1 << ". " << webScores.at(i).first << " " << webScores.at(i).second << endl;
+			}
+			return webScores;
+		}
+		else {
+
+			set<pair<string, double>> webScores1;
+			for (unsigned i = 0; i < result1->websites.size(); i++) {
+				web.calcScore(result1->websites.at(i));
+				pair<string, double> candidate = { result1->websites.at(i), web.getScore(result1->websites.at(i)) };
+				webScores1.insert(candidate);
+			}
+
+			set<pair<string, double>> webScores2;
+			for (unsigned i = 0; i < result2->websites.size(); i++) {
+				web.calcScore(result2->websites.at(i));
+				pair<string, double> candidate = { result2->websites.at(i), web.getScore(result2->websites.at(i)) };
+				webScores2.insert(candidate);
+			}
+
+			vector<pair<string, double>> v3;
+
+			set_union(webScores1.begin(), webScores1.end(),
+				webScores2.begin(), webScores2.end(),
+				back_inserter(v3));
+
+
+			sort(v3.rbegin(), v3.rend(), sortbysec);
+			cout << "Search Results for: " << q << endl;
+			for (int i = 0; i < v3.size(); i++) {
+				web.incrementImps(v3.at(i).first);
+				web.calcScore(v3.at(i).first);
+				//cout << i + 1 << ". " << v3.at(i).first << " " << v3.at(i).second << endl;
+			}
+			return v3;
+		}
+
+	}
 	else if (row.size() == 3) {
-		auto result1 = tree.search_return(row.at(0));
-		auto result2 = tree.search_return(row.at(2));
+		auto result1 = tree.search_return(quoteRemover(row.at(0)));
+		auto result2 = tree.search_return(quoteRemover(row.at(2)));
 
 		if ((result1 == nullptr || result2 == nullptr) && row.at(1) == "AND") {
 			//cout << "No websites contain the query \"" << q << "\"" << endl;
@@ -343,4 +421,19 @@ bool sortbysec(const pair<string, double>& a, const pair<string, double>& b)
 inline bool exists_test0(const string& name) {
 	ifstream f(name.c_str());
 	return f.good();
+}
+
+string quoteRemover(string s) {
+	if (s[0] == '"'){
+		string clean = "";
+
+		for (int i = 1; i < s.size() - 1; i++) {
+			clean += s[i];
+		}
+
+		return clean;
+	}
+	else {
+		return s;
+	}
 }
